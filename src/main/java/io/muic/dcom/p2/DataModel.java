@@ -1,7 +1,9 @@
 package io.muic.dcom.p2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class DataModel {
@@ -22,25 +24,51 @@ public class DataModel {
     }
 
     private List<ParcelObserved> transactions;
+    private ConcurrentHashMap<String, String> hashTrail = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Long> hashCount = new ConcurrentHashMap<>();
+    private Long count ;
+    private ArrayList<ParcelObserved> getTrail = new ArrayList<>();
+
+    private ParcelObserved parcelObserved ;
+
 
     DataModel() {
         transactions = new ArrayList<>();
+        getTrail = new ArrayList<>();
+        hashTrail = new ConcurrentHashMap<>();
+        count = 0L;
+
+
+
     }
 
+    /// IMPLEMENTS CONSTRUCTOR //
     public synchronized void postObserve(String parcelId, String stationId, long timestamp) {
-        ParcelObserved parcelObserved = new ParcelObserved(parcelId, stationId, timestamp);
-        transactions.add(parcelObserved);
+
+//        ParcelObserved parcelObserved = new ParcelObserved(parcelId, stationId, timestamp);
+
+        hashTrail.put(parcelId, stationId);
+        hashCount.put(stationId, count+= 1);
+
+//        transactions.add(parcelObserved);
+    }
+    // Display only that parceID  <parceID, that station>
+    public synchronized   List<ParcelObserved> getParcelTrail(String parcelId) {
+
+        parcelObserved = new ParcelObserved(parcelId, parcelObserved.getStationId(), parcelObserved.getTimeStamp());
+
+        getTrail.add(parcelObserved);
+
+
+        return getTrail;
     }
 
-    public synchronized List<ParcelObserved> getParcelTrail(String parcelId) {
-        return transactions.stream()
-                .filter(observeEvent -> observeEvent.parcelId.equals(parcelId))
-                .collect(Collectors.toList());
-    }
 
+    // Count only if that station ID < StationID , howmany (Count) >
     public synchronized long getStopCount(String stationId) {
-        return transactions.stream()
-                .filter(observeEvent -> observeEvent.stationId.equals(stationId))
-                .count();
+
+
+
+        return hashCount.get(stationId);
     }
 }

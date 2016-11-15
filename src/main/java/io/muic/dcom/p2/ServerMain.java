@@ -8,13 +8,13 @@ import java.util.List;
 
 public class ServerMain {
     static class Config {
-        public static final int DEFAULT_NUM_THREADS = 4;
-        public static final int DEFAULT_PORT = 9090;
+        public static final int DEFAULT_NUM_THREADS = 6;
+        public static final int DEFAULT_PORT = 8080;
     }
 
     public static void main(String args[]) {
         // Spark server setup
-        threadPool(Config.DEFAULT_NUM_THREADS);
+        //threadPool(Config.DEFAULT_NUM_THREADS);
         port(Config.DEFAULT_PORT);
 
         // setup data store
@@ -67,13 +67,14 @@ public class ServerMain {
             String stationId = request.headers("stationId");
             String timestampStr = request.headers("timestamp");
             Long timestamp = null;
+
             try { timestamp = Long.parseLong(timestampStr); }
             catch (NumberFormatException e) {
                 halt(400, "Invalid timestamp.");
             }
             // validate input
-            if (null != parcelId && null != stationId &&
-                    parcelId.length() > 0 && stationId.length() >0) {
+            if (null != parcelId && null != stationId && parcelId.length() > 0 && stationId.length() >0) {
+
                 model.postObserve(parcelId, stationId, timestamp);
                 response.status(200);
             } else halt(400);
